@@ -1,13 +1,10 @@
-# CI Workflow for Bento4
 name: CI
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - "v*.*"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -31,8 +28,7 @@ jobs:
             PYTHON3_COMMAND: py  
 
     steps:
-      # Check out the repository under $GITHUB_WORKSPACE, so that the jobs can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # CMake Build
       - name: Release Build with CMake
@@ -43,15 +39,19 @@ jobs:
           cd ${{matrix.CMAKE_OUTPUT_SUBDIR}}
           cmake ${{matrix.CMAKE_OPTIONS}} ../..
           cmake --build . --config Release
-
       # Create SDK
       - name: Create SDK
-        if: github.event_name == 'push'
         run: ${{matrix.PYTHON3_COMMAND}} Scripts/SdkPackager.py
         
       # Upload the SDK
       - name: Upload SDK
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: SDK/*.zip
+
+      # Release the SDK
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: SDK/*.zip
