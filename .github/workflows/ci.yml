@@ -41,6 +41,7 @@ jobs:
           cd ${{matrix.CMAKE_OUTPUT_SUBDIR}}
           cmake ${{matrix.CMAKE_OPTIONS}} ../..
           cmake --build . --config Release
+
       # Create SDK
       - name: Create SDK
         run: |
@@ -64,7 +65,11 @@ jobs:
       # Download the SDK
       - name: Download SDK
         uses: actions/download-artifact@v3
+        with:
+          path: ~/release
 
+      - run: ls -lAog ~/release
+      
       # Release
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -72,4 +77,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: false
           title: "Latest Release"
-          files: "*.zip"
+          files: "~/release/*.zip"
