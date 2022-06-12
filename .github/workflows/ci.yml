@@ -43,14 +43,26 @@ jobs:
           cmake --build . --config Release
       # Create SDK
       - name: Create SDK
-        run: ${{matrix.PYTHON3_COMMAND}} Scripts/SdkPackager.py
-        
+        run: |
+          ${{matrix.PYTHON3_COMMAND}} Scripts/SdkPackager.py
+
       # Upload the SDK
       - name: Upload SDK
         uses: actions/upload-artifact@v3
         with:
           name: bento4-${{ matrix.os }}-artifact
           path: SDK/*.zip
+
+  release:
+    name: Bento4 Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      # Download the SDK
+      - name: Download SDK
+        uses: actions/download-artifact@v3
 
       # Release
       - uses: "marvinpinto/action-automatic-releases@latest"
@@ -59,4 +71,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: false
           title: "Development Build"
-          files: SDK/*.zip
+          files: "*.zip"
